@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -95,12 +96,15 @@ func preprocessLine(line, searchStr string) (string, string) {
 }
 
 func matchLine(line, searchStr string) bool {
+	var matched bool
 	if flags.F {
-		return line == searchStr
-	}
-	matched := strings.Contains(line, searchStr)
-	if flags.v {
-		return !matched
+		matched = strings.Contains(line, searchStr)
+	} else {
+		re := regexp.MustCompile(searchStr)
+		matched = re.MatchString(line)
+		if flags.v {
+			return !matched
+		}
 	}
 	return matched
 }
@@ -126,7 +130,7 @@ func updateBeforeBuffer(buffer []string, line string, lineNumber int) []string {
 			buffer = buffer[1:]
 		}
 		if flags.n {
-			buffer = append(buffer, fmt.Sprintf("%d:%s", lineNumber, line))
+			buffer = append(buffer, fmt.Sprintf("%d-%s", lineNumber, line))
 		} else {
 			buffer = append(buffer, line)
 		}
@@ -137,7 +141,7 @@ func updateBeforeBuffer(buffer []string, line string, lineNumber int) []string {
 func printAfterLines(afterCounter *int, line string, lineNumber int) {
 	if *afterCounter > 0 {
 		if flags.n {
-			fmt.Printf("%d: %s\n", lineNumber, line)
+			fmt.Printf("%d-%s\n", lineNumber, line)
 		} else {
 			fmt.Println(line)
 		}
@@ -147,7 +151,7 @@ func printAfterLines(afterCounter *int, line string, lineNumber int) {
 
 func printCount(lineCount int, filename string, multipleFiles bool) {
 	if multipleFiles {
-		fmt.Printf("%s:%d\n", filename, lineCount)
+		fmt.Printf("%s%d\n", filename, lineCount)
 	} else {
 		fmt.Printf("%d\n", lineCount)
 	}

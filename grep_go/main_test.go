@@ -13,7 +13,6 @@ func TestFlags(t *testing.T) {
 		name       string
 		args       []string
 		inputFiles map[string]string // Карта временных файлов: имя -> содержимое
-		expected   string
 	}{
 		{
 			name: "Test -A (after)",
@@ -21,7 +20,6 @@ func TestFlags(t *testing.T) {
 			inputFiles: map[string]string{
 				"file1.txt": "line1\nline2\ntest\nline4\nline5\nline6",
 			},
-			expected: "test\nline4\nline5\n",
 		},
 		{
 			name: "Test -B (before)",
@@ -29,7 +27,6 @@ func TestFlags(t *testing.T) {
 			inputFiles: map[string]string{
 				"file1.txt": "line1\nline2\ntest\nline4\nline5",
 			},
-			expected: "line2\ntest\n",
 		},
 		{
 			name: "Test -C (context)",
@@ -37,7 +34,6 @@ func TestFlags(t *testing.T) {
 			inputFiles: map[string]string{
 				"file1.txt": "line1\nline2\ntest\nline4\nline5",
 			},
-			expected: "line2\ntest\nline4\n",
 		},
 		{
 			name: "Test -c (count)",
@@ -45,7 +41,6 @@ func TestFlags(t *testing.T) {
 			inputFiles: map[string]string{
 				"file1.txt": "line1\nline2\ntest\nline4\ntest\n",
 			},
-			expected: "2\n",
 		},
 		{
 			name: "Test -i (ignore case)",
@@ -53,7 +48,6 @@ func TestFlags(t *testing.T) {
 			inputFiles: map[string]string{
 				"file1.txt": "line1\nline2\ntest\nline4\nTEST\n",
 			},
-			expected: "test\nTEST\n",
 		},
 		{
 			name: "Test -v (invert match)",
@@ -61,15 +55,13 @@ func TestFlags(t *testing.T) {
 			inputFiles: map[string]string{
 				"file1.txt": "line1\nline2\ntest\nline4\n",
 			},
-			expected: "line1\nline2\nline4\n",
 		},
 		{
 			name: "Test -F (fixed string)",
-			args: []string{"-F", "test", "file1.txt"},
+			args: []string{"-F", "a*b", "file1.txt"},
 			inputFiles: map[string]string{
-				"file1.txt": "line1\nline2\ntesting\nline4\ntest\n",
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
 			},
-			expected: "test\n",
 		},
 		{
 			name: "Test -n (line number)",
@@ -77,13 +69,116 @@ func TestFlags(t *testing.T) {
 			inputFiles: map[string]string{
 				"file1.txt": "line1\nline2\ntest\nline4\n",
 			},
-			expected: "3: test\n",
+		},
+		{
+			name: "Test no -F (regular)",
+			args: []string{"a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -A -n (regular)",
+			args: []string{"-A", "3", "-n", "test", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -B -n (regular)",
+			args: []string{"-B", "3", "-n", "test", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -C -n (regular)",
+			args: []string{"-C", "3", "-n", "test", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -c -n (regular)",
+			args: []string{"-c", "-n", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -i -n (regular)",
+			args: []string{"-i", "-n", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -v -n (regular)",
+			args: []string{"-v", "-n", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -F -n (regular)",
+			args: []string{"-n", "-F", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -A -F (regular)",
+			args: []string{"-A", "3", "-F", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\na\nb\nc\n",
+			},
+		},
+		{
+			name: "Test -B -F (regular)",
+			args: []string{"-B", "3", "-F", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -C -F (regular)",
+			args: []string{"-C", "3", "-F", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -c -F (regular)",
+			args: []string{"-c", "-F", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -i -F (regular)",
+			args: []string{"-i", "-n", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -v -F (regular)",
+			args: []string{"-v", "-n", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
+		},
+		{
+			name: "Test -F -n (regular)",
+			args: []string{"-n", "-F", "a*b", "file1.txt"},
+			inputFiles: map[string]string{
+				"file1.txt": "a*b\nb\nab\naaab\ntest\na*b\n",
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Создаем временные файлы
 			tempFiles := make([]string, 0, len(tt.inputFiles))
 			for filename, content := range tt.inputFiles {
 				tmpFile, err := os.CreateTemp("", filename)
@@ -113,9 +208,6 @@ func TestFlags(t *testing.T) {
 			}
 
 			got := out.String()
-			//if strings.TrimSpace(got) != strings.TrimSpace(tt.expected) {
-			//	t.Errorf("Ожидалось:\n%s\nПолучено:\n%s", tt.expected, got)
-			//}
 
 			grepCmd := exec.Command("grep", tt.args...)
 			var grepOut bytes.Buffer
